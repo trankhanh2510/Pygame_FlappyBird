@@ -71,7 +71,29 @@ def draw_score(game_state):
 def  update_score(score,high_score):
     if score > high_score:
         high_score = score
+        save_high_score(high_score)  # Lưu vào file
     return high_score
+
+# Tìm đường dẫn thư mục phù hợp để lưu high_score.txt
+def get_high_score_path():
+    if getattr(sys, 'frozen', False):  # Kiểm tra nếu đang chạy dưới dạng .exe
+        base_dir = os.path.dirname(sys.executable)  # Lưu cùng thư mục .exe
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))  # Chạy bằng Python
+
+    return os.path.join(base_dir, "high_score.txt")
+
+def load_high_score():
+    try:
+        with open("high_score.txt", "r") as file:
+            return int(file.read())
+    except (FileNotFoundError, ValueError):
+        return 0
+
+def save_high_score(high_score):
+    with open("high_score.txt", "w") as file:
+        file.write(str(high_score))
+
 
 # --------------TẠO BIẾN---------------#
 x=432
@@ -84,7 +106,7 @@ gravity=0.25
 bird_movement = 0
 game_active = True
 score = 0
-high_score = 0
+high_score = load_high_score()
 pige_height = [300,320,340,360,380,400,420,440,460,480,500]
 start_height = [370,380,390,400,410]
 height = [190,200,180]
