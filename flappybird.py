@@ -77,7 +77,9 @@ def  update_score(score,high_score):
 # Tìm đường dẫn thư mục phù hợp để lưu high_score.txt
 def get_high_score_path():
     if getattr(sys, 'frozen', False):  # Kiểm tra nếu đang chạy dưới dạng .exe
-        base_dir = os.path.dirname(sys.executable)  # Lưu cùng thư mục .exe
+        # base_dir = os.path.dirname(sys.executable)  # Lưu cùng thư mục .exe
+        base_dir = os.path.join(os.getenv('AppData'), 'FlappyBird')  # Lưu trong %APPDATA%
+        os.makedirs(base_dir, exist_ok=True)  # Tạo thư mục nếu chưa có
     else:
         base_dir = os.path.dirname(os.path.abspath(__file__))  # Chạy bằng Python
 
