@@ -1,4 +1,4 @@
-import pygame,sys,random
+import pygame,sys,random, os
 # -------------TẠO HÀM------------------# 
 def draw_bg():
     screen.blit(bg,(bg_x,0)) 
@@ -97,21 +97,25 @@ pygame.display.set_caption('Flappy Bird')
 screen= pygame.display.set_mode((x,y)) 
 clock = pygame.time.Clock()
 
+# Lấy đường dẫn thư mục chứa file đã đóng gói
+if getattr(sys, 'frozen', False):  # Khi chạy file .exe
+    base_path = sys._MEIPASS
+else:  # Khi chạy file .py
+    base_path = os.path.abspath(".")
+    
 # ----------------chèn font-----------#
-game_font = pygame.font.Font('04B_19.ttf',40)
+font_path = os.path.join(base_path, "04B_19.ttf")
+game_font = pygame.font.Font(font_path, 40)
+
 #------------------------CHÈN HÌNH ẢNH---------------------#
-bg = pygame.image.load('assets/background-night.png').convert()
-bg = pygame.transform.scale2x(bg)
+bg = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "background-night.png")).convert())
 
-floor = pygame.image.load('assets/floor.png').convert()
-floor =  pygame.transform.scale2x(floor)
+floor = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "floor.png")).convert())
 
-bird_down = pygame.image.load('assets/yellowbird-downflap.png').convert_alpha()
-bird_down =  pygame.transform.scale2x(bird_down)
-bird_mid = pygame.image.load('assets/yellowbird-midflap.png').convert_alpha()
-bird_mid =  pygame.transform.scale2x(bird_mid)
-bird_up = pygame.image.load('assets/yellowbird-upflap.png').convert_alpha()
-bird_up =  pygame.transform.scale2x(bird_up)
+bird_down = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "yellowbird-downflap.png")).convert_alpha())
+bird_mid = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "yellowbird-midflap.png")).convert_alpha())
+bird_up = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "yellowbird-upflap.png")).convert_alpha())
+
 bird_list = [bird_down,bird_mid,bird_up]
 bird_index = 0
 bird = bird_list[bird_index] 
@@ -119,27 +123,24 @@ bird_rect = bird.get_rect(center = (100,300))
 birdflap = pygame.USEREVENT + 0
 pygame.time.set_timer(birdflap,200)
 
-pige_surface = pygame.image.load('assets/pipe-green.png').convert()
-pige_surface = pygame.transform.scale2x(pige_surface)
+pige_surface = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "pipe-green.png")).convert())
 pige_list = []
 spawnpige = pygame.USEREVENT + 1
 pygame.time.set_timer(spawnpige,random.choice(tg))
 
-start_surface = pygame.image.load('assets/start.png').convert_alpha()
-start_surface = pygame.transform.scale(start_surface,(30,30))
+start_surface = pygame.transform.scale(pygame.image.load(os.path.join(base_path, "assets", "start.png")).convert_alpha(),(30,30))
 random_start_pos = random.choice(start_height)
 test_start = False
 spawnstart = pygame.USEREVENT + 2
 pygame.time.set_timer(spawnstart,5000)
 
-game_over_suface = pygame.image.load('assets/message.png').convert_alpha()
-game_over_suface = pygame.transform.scale2x(game_over_suface)
+game_over_suface = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "message.png")).convert_alpha())
 game_over_rect = game_over_suface.get_rect(center=(x/2,y/2))
 
 #---------------CHÈN ÂM THANH-------------#
-flap_sound = pygame.mixer.Sound('sound/sfx_wing.wav')
-hit_sound = pygame.mixer.Sound('sound/sfx_hit.wav')
-score_sound = pygame.mixer.Sound('sound/sfx_point.wav')
+flap_sound = pygame.mixer.Sound(os.path.join(base_path, "sound", "sfx_wing.wav"))
+hit_sound = pygame.mixer.Sound(os.path.join(base_path, "sound", "sfx_hit.wav"))
+score_sound = pygame.mixer.Sound(os.path.join(base_path, "sound", "sfx_point.wav"))
 
 # #--------------------- LẶP WHILE TẠO GAME----------------#
 game = True
