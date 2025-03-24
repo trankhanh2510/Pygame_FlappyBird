@@ -65,9 +65,24 @@ def draw_score(game_state):
         high_score_rect = high_score_suface.get_rect(center = (x/2,50))
         screen.blit(high_score_suface,high_score_rect)
 
-        exit_suface = game_font.render(f'Thoat: x',True,(255,255,255))
+        exit_suface = game_font.render(f'exit: x',True,(255,255,255))
         exit_rect = exit_suface.get_rect(center = (x/2,630))
         screen.blit(exit_suface,exit_rect)
+        
+    if game_state == 'game_start':
+        game_start_font = pygame.font.Font(font_path, 60)
+        start_suface = game_start_font.render(f'FlappyBird',True,(255,255,255))
+        start_rect = start_suface.get_rect(center = (x/2,150))
+        screen.blit(start_suface,start_rect)
+        
+        exit_suface = game_font.render(f'exit: x',True,(255,255,255))
+        exit_rect = exit_suface.get_rect(center = (x/2,530))
+        screen.blit(exit_suface,exit_rect)
+        
+        exit_suface = game_font.render(f'switch bg: b',True,(255,255,255))
+        exit_rect = exit_suface.get_rect(center = (x/2,580))
+        screen.blit(exit_suface,exit_rect)
+    
 def  update_score(score,high_score):
     if score > high_score:
         high_score = score
@@ -76,6 +91,7 @@ def  update_score(score,high_score):
 
 # Tìm đường dẫn thư mục phù hợp để lưu high_score.txt
 def get_high_score_path():
+    '''check lại phần này'''
     if getattr(sys, 'frozen', False):  # Kiểm tra nếu đang chạy dưới dạng .exe
         # base_dir = os.path.dirname(sys.executable)  # Lưu cùng thư mục .exe
         base_dir = os.path.join(os.getenv('AppData'), 'FlappyBird')  # Lưu trong %APPDATA%
@@ -106,7 +122,8 @@ bg_x = 0
 toc_do=80
 gravity=0.25
 bird_movement = 0
-game_active = True
+game_active = False
+game_start = False
 score = 0
 high_score = load_high_score()
 pige_height = [300,320,340,360,380,400,420,440,460,480,500]
@@ -122,6 +139,7 @@ screen= pygame.display.set_mode((x,y))
 clock = pygame.time.Clock()
 
 # Lấy đường dẫn thư mục chứa file đã đóng gói
+'''check lại phần này'''
 if getattr(sys, 'frozen', False):  # Khi chạy file .exe
     base_path = sys._MEIPASS
 else:  # Khi chạy file .py
@@ -132,7 +150,12 @@ font_path = os.path.join(base_path, "04B_19.ttf")
 game_font = pygame.font.Font(font_path, 40)
 
 #------------------------CHÈN HÌNH ẢNH---------------------#
-bg = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "background-night.png")).convert())
+# bg = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "background-night.png")).convert())
+bg0 = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "background-night.png")).convert())
+bg1 = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "background-morning.jpg")).convert())
+bg_list = [bg0,bg1]
+stt_bg = 0
+bg = bg_list[stt_bg]
 
 floor = pygame.transform.scale2x(pygame.image.load(os.path.join(base_path, "assets", "floor.png")).convert())
 
@@ -184,10 +207,13 @@ while game:
             sys.exit()
         # sự kiện với bàn phím
         if event.type == pygame.KEYDOWN :
-            if event.key == pygame.K_SPACE and game_active :
+            if event.key == pygame.K_SPACE and not game_start:
+                game_active = True
+                game_start = True
+            if event.key == pygame.K_SPACE and game_active:
                 bird_movement = -5
                 flap_sound.play()
-            if event.key == pygame.K_SPACE and game_active == False:
+            if event.key == pygame.K_SPACE and not game_active:
                 pige_list.clear()
                 pygame.time.set_timer(spawnstart,random.choice(tg_start))
                 # pygame.time.set_timer(spawnpige,random.choice(tg))
@@ -202,12 +228,19 @@ while game:
                 pygame.quit()
                 print("End game Flappy Bird.")
                 sys.exit() 
+            if event.key == pygame.K_b:
+                stt_bg = (stt_bg + 1) % len(bg_list)
+                bg = bg_list[stt_bg]
+
 
         # sự kiện với chuột
+        if event.type == pygame.MOUSEBUTTONUP and not game_start:
+            game_active = True
+            game_start = True
         if event.type == pygame.MOUSEBUTTONUP and game_active:
             bird_movement = -5
             flap_sound.play()
-        if event.type == pygame.MOUSEBUTTONUP and game_active == False:
+        if event.type == pygame.MOUSEBUTTONUP and not game_active:
             pige_list.clear()
             pygame.time.set_timer(spawnstart,random.choice(tg_start))
             # pygame.time.set_timer(spawnpige,random.choice(tg))
@@ -219,54 +252,56 @@ while game:
             toc_do=80
 
         # sự kiện tạo với ống
-        if event.type == spawnpige :
+        if event.type == spawnpige and game_start:
             pige_list.extend(create_pige())
             score_active=False
         # sự kiện với ngôi sao
-        if event.type == spawnstart :
+        if event.type == spawnstart and game_start:
             new_start = start_surface.get_rect(center = (500,random.choice(start_height)))
             test_start = True
             score_start = False
         # sự kiện với chim
-        if event.type == birdflap:
+        if event.type == birdflap and game_start:
             if bird_index < 2:
                 bird_index +=1
             else:
                 bird_index =0
             bird, bird_rect = bird_animation()
-
     # hoạt động của game
-    if game_active:
-        bird_movement += gravity   
-        rotated_bird = rotate_bird(bird)
-        bird_rect.centery += bird_movement
-        screen.blit(rotated_bird,bird_rect)
-        game_active = check_collision(pige_list)
-        pige_list = move_pige(pige_list)
-        draw_pige(pige_list)
-        # tính điểm khi qua ống
-        for pige in pige_list :
-            if bird_rect.centerx > pige.centerx and score_active==False :
-                score += 1
-                toc_do += 1
-                score_active=True
-                score_sound.play()
-        if test_start :
-            new_start.centerx -= 4
-            screen.blit(start_surface,new_start)
-            # tính điểm khi chạm ngôi sao
-            if bird_rect.colliderect(new_start) and score_start==False :
-                score += 2
-                new_start.centerx -= 500
-                score_start=True
-                score_sound.play()
-        high_score =  update_score(score,high_score)
-        draw_score('main game')
+    if game_start:
+        if game_active:
+            bird_movement += gravity   
+            rotated_bird = rotate_bird(bird)
+            bird_rect.centery += bird_movement
+            screen.blit(rotated_bird,bird_rect)
+            game_active = check_collision(pige_list)
+            pige_list = move_pige(pige_list)
+            draw_pige(pige_list)
+            # tính điểm khi qua ống
+            for pige in pige_list :
+                if bird_rect.centerx > pige.centerx and score_active==False :
+                    score += 1
+                    toc_do += 1
+                    score_active=True
+                    score_sound.play()
+            if test_start :
+                new_start.centerx -= 4
+                screen.blit(start_surface,new_start)
+                # tính điểm khi chạm ngôi sao
+                if bird_rect.colliderect(new_start) and score_start==False :
+                    score += 2
+                    new_start.centerx -= 500
+                    score_start=True
+                    score_sound.play()
+            high_score =  update_score(score,high_score)
+            draw_score('main game')
+        else:
+            screen.blit(game_over_suface,game_over_rect)
+            high_score =  update_score(score,high_score)
+            draw_score('game over')
     else:
-        screen.blit(game_over_suface,game_over_rect)
-        high_score =  update_score(score,high_score)
-        draw_score('game over')
-
+        draw_score('game_start')
+        screen.blit(bird,bird.get_rect(center = (x/2,(y-(y-floor_y))/2)))
     floor_x -= 4
     draw_floor()
     if floor_x <= -x: 
